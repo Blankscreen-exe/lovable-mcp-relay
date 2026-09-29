@@ -1,0 +1,8 @@
+# Keep line endings predictable across machines.
+#
+# A shell script checked out with Windows endings fails to run at all -- the
+# interpreter line ends up as "#!/usr/bin/env sh\r" -- so the launcher must stay
+# LF. The Windows batch file is the opposite case and wants CRLF.
+* text=auto eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf

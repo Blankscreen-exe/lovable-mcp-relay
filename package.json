@@ -1,0 +1,19 @@
+{
+  "name": "lovable-mcp-relay",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "description": "Local relay that repairs Lovable's MCP server replies so Claude Code (and other strict MCP clients) can connect to it.",
+  "license": "MIT",
+  "keywords": ["mcp", "lovable", "claude-code", "proxy", "relay"],
+  "main": "src/relay.mjs",
+  "scripts": {
+    "start": "node src/relay.mjs",
+    "open": "node src/relay.mjs --open",
+    "test": "node selftest.mjs && node selftest-ui.mjs",
+    "selftest": "node selftest.mjs",
+    "selftest:ui": "node selftest-ui.mjs",
+    "health": "node -e \"fetch('http://127.0.0.1:'+(process.env.PORT||8787)+'/healthz').then(r=>r.text()).then(console.log).catch(e=>{console.error('relay not running:',e.message);process.exit(1)})\""
+  },
+  "engines": { "node": ">=18.17" }
+}

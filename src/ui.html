@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%233b5bdb%27/%3E%3Cpath d=%27M8 16h5l3-6 3 12 3-6h2%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.4%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E" />
+    <title>Lovable MCP relay</title>
+    <style>
+      :root {
+        --bg: #f7f7f8;
+        --card: #ffffff;
+        --ink: #1a1a1e;
+        --muted: #62626d;
+        --line: #e3e3e8;
+        --accent: #3b5bdb;
+        --ok: #1f7a4d;
+        --ok-bg: #e7f6ed;
+        --warn: #8a5300;
+        --warn-bg: #fdf3e2;
+        --bad: #a32020;
+        --bad-bg: #fdeaea;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16161a;
+          --card: #1e1e24;
+          --ink: #ececf0;
+          --muted: #9a9aa6;
+          --line: #2e2e37;
+          --accent: #8da2fb;
+          --ok: #6ee7a8;
+          --ok-bg: #143025;
+          --warn: #f0c274;
+          --warn-bg: #33270f;
+          --bad: #f5a3a3;
+          --bad-bg: #331616;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 32px 16px 64px;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main { max-width: 760px; margin: 0 auto; }
+      header { margin-bottom: 28px; }
+      h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: -0.01em; }
+      .sub { color: var(--muted); font-size: 13.5px; margin: 0; }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      h2 { font-size: 15px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+      .pill {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      .pill.ok { background: var(--ok-bg); color: var(--ok); }
+      .pill.warn { background: var(--warn-bg); color: var(--warn); }
+      .pill.bad { background: var(--bad-bg); color: var(--bad); }
+      dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; font-size: 14px; }
+      dt { color: var(--muted); }
+      dd { margin: 0; font-variant-numeric: tabular-nums; }
+      code, .mono { font-family: var(--mono); font-size: 13px; }
+      textarea {
+        width: 100%;
+        min-height: 110px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 12.5px;
+        resize: vertical;
+      }
+      textarea:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+      button {
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--ink);
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { border-color: var(--accent); }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      button:disabled { opacity: 0.55; cursor: default; }
+      .hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+      .note { border-radius: 8px; padding: 10px 12px; font-size: 13.5px; margin-top: 12px; }
+      .note.ok { background: var(--ok-bg); color: var(--ok); }
+      .note.warn { background: var(--warn-bg); color: var(--warn); }
+      .note.bad { background: var(--bad-bg); color: var(--bad); }
+      ul.steps { list-style: none; padding: 0; margin: 12px 0 0; font-size: 13.5px; }
+      ul.steps li { display: flex; gap: 9px; padding: 4px 0; align-items: baseline; }
+      ul.steps .mark { width: 14px; flex: none; font-weight: 700; }
+      ul.steps .pass { color: var(--ok); }
+      ul.steps .fail { color: var(--bad); }
+      ul.steps .detail { color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+      .conn { border: 1px solid var(--line); border-radius: 9px; padding: 13px; margin-bottom: 10px; }
+      .conn .path { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+      .conn .state { font-size: 13px; color: var(--muted); margin-top: 4px; }
+      .diff { font-family: var(--mono); font-size: 12.5px; margin-top: 10px; white-space: pre-wrap; }
+      .diff .minus { color: var(--bad); }
+      .diff .plus { color: var(--ok); }
+      footer { color: var(--muted); font-size: 12.5px; text-align: center; margin-top: 26px; }
+      .spin { opacity: 0.6; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Lovable MCP relay</h1>
+        <p class="sub">
+          Repairs Lovable's MCP replies so Claude Code can connect. Running on
+          <code id="relay-url">…</code>
+        </p>
+      </header>
+
+      <section>
+        <h2>Login <span id="auth-pill" class="pill warn">checking</span></h2>
+        <dl id="auth-details"></dl>
+        <div id="auth-note"></div>
+      </section>
+
+      <section>
+        <h2>Paste a token</h2>
+        <p class="hint">
+          Paste the contents of a saved <code>.token-cache.json</code> or
+          <code>laptop-chain.json</code>, or just an access token on its own. A chain
+          that includes a refresh token keeps itself alive; a lone access token lasts
+          about 8 hours and then needs replacing.
+        </p>
+        <textarea
+          id="token-input"
+          spellcheck="false"
+          placeholder='{ "accessToken": "…", "refreshToken": "…" }   — or just the access token'
+        ></textarea>
+        <div class="row">
+          <button class="primary" id="save-token">Check and save</button>
+          <span id="save-status" class="hint" style="margin: 0"></span>
+        </div>
+        <div id="save-note"></div>
+      </section>
+
+      <section>
+        <h2>Connection test</h2>
+        <p class="hint">
+          Runs a real handshake through this relay against Lovable, including the reply
+          that hangs without it.
+        </p>
+        <div class="row"><button id="run-test">Run test</button></div>
+        <ul class="steps" id="test-steps"></ul>
+      </section>
+
+      <section>
+        <h2>Connect Claude Code</h2>
+        <p class="hint">
+          Points a project's MCP config at this relay. Nothing is written until you
+          confirm, and Revert puts the original address back. Claude Code reads this
+          only at startup, so restart it afterwards.
+        </p>
+        <div id="connections"></div>
+        <div class="row">
+          <button id="refresh-conns">Rescan</button>
+        </div>
+        <div id="conn-note"></div>
+      </section>
+
+      <footer>Runs only on this machine · nothing is sent anywhere except Lovable</footer>
+    </main>
+
+    <script>
+      const NONCE = '{{NONCE}}';
+      const RELAY_URL = '{{RELAY_URL}}';
+      document.getElementById('relay-url').textContent = RELAY_URL;
+
+      const $ = (id) => document.getElementById(id);
+
+      async function api(path, body) {
+        const res = await fetch(path, {
+          method: body ? 'POST' : 'GET',
+          headers: body
+            ? { 'content-type': 'application/json', 'x-relay-nonce': NONCE }
+            : { 'x-relay-nonce': NONCE },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Request failed (' + res.status + ')');
+        return data;
+      }
+
+      function note(el, kind, text) {
+        el.innerHTML = '';
+        if (!text) return;
+        const div = document.createElement('div');
+        div.className = 'note ' + kind;
+        div.textContent = text;
+        el.appendChild(div);
+      }
+
+      function humanMinutes(mins) {
+        if (mins === null || mins === undefined) return 'unknown';
+        if (mins < 0) return 'expired';
+        if (mins < 60) return mins + ' min';
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return h + 'h ' + m + 'm';
+      }
+
+      function renderAuth(status, account) {
+        const pill = $('auth-pill');
+        const details = $('auth-details');
+        details.innerHTML = '';
+
+        const add = (label, value) => {
+          const dt = document.createElement('dt');
+          dt.textContent = label;
+          const dd = document.createElement('dd');
+          dd.textContent = value;
+          details.append(dt, dd);
+        };
+
+        if (!status.ok) {
+          pill.className = 'pill bad';
+          pill.textContent = 'no token';
+          note($('auth-note'), 'warn', status.error || 'No Lovable login found yet. Paste one below.');
+          return;
+        }
+
+        const mins = status.minutesRemaining;
+        const lapsed = mins !== null && mins <= 0;
+        pill.className = 'pill ' + (lapsed ? 'bad' : mins < 30 ? 'warn' : 'ok');
+        pill.textContent = lapsed ? 'lapsed' : 'ready';
+
+        if (account && account.email) add('Account', account.email);
+        if (account && account.workspaces && account.workspaces.length) {
+          add('Workspaces', account.workspaces.map((w) => w.name + ' (' + w.role + ')').join(', '));
+        }
+        add('Token source', status.source);
+        add('Expires in', humanMinutes(mins));
+        add('Can renew itself', status.canRenew ? 'yes' : 'no');
+
+        if (lapsed) {
+          note($('auth-note'), 'bad', 'The token has lapsed. Paste a fresh one below.');
+        } else if (!status.canRenew) {
+          note(
+            $('auth-note'),
+            'warn',
+            'No refresh token, so this cannot renew itself. When it lapses, paste a new one.'
+          );
+        } else {
+          note($('auth-note'), 'ok', 'Renews itself automatically. Nothing to do.');
+        }
+      }
+
+      async function loadStatus() {
+        try {
+          const data = await api('/api/status');
+          renderAuth(data.auth, data.account);
+        } catch (err) {
+          note($('auth-note'), 'bad', err.message);
+        }
+      }
+
+      $('save-token').addEventListener('click', async () => {
+        const btn = $('save-token');
+        const text = $('token-input').value.trim();
+        if (!text) {
+          note($('save-note'), 'warn', 'Paste something first.');
+          return;
+        }
+        btn.disabled = true;
+        $('save-status').textContent = 'checking with Lovable…';
+        note($('save-note'), '', '');
+        try {
+          const data = await api('/api/token', { text });
+          $('token-input').value = '';
+          const who = data.account.email;
+          note(
+            $('save-note'),
+            'ok',
+            'Saved. This token belongs to ' +
+              who +
+              (data.canRenew ? ' and can renew itself.' : '. It has no refresh token, so it will lapse.')
+          );
+          await loadStatus();
+        } catch (err) {
+          note($('save-note'), 'bad', err.message + ' Your previous login was left untouched.');
+        } finally {
+          btn.disabled = false;
+          $('save-status').textContent = '';
+        }
+      });
+
+      $('run-test').addEventListener('click', async () => {
+        const btn = $('run-test');
+        const list = $('test-steps');
+        btn.disabled = true;
+        list.innerHTML = '<li class="spin">running…</li>';
+        try {
+          const data = await api('/api/test', {});
+          list.innerHTML = '';
+          for (const step of data.steps) {
+            const li = document.createElement('li');
+            const mark = document.createElement('span');
+            mark.className = 'mark ' + (step.ok ? 'pass' : 'fail');
+            mark.textContent = step.ok ? '✓' : '✗';
+            const name = document.createElement('span');
+            name.textContent = step.name;
+            const detail = document.createElement('span');
+            detail.className = 'detail';
+            detail.textContent = step.detail || '';
+            li.append(mark, name, detail);
+            list.appendChild(li);
+          }
+        } catch (err) {
+          list.innerHTML = '';
+          note($('conn-note'), 'bad', err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      function renderConnections(items) {
+        const box = $('connections');
+        box.innerHTML = '';
+        if (!items.length) {
+          const p = document.createElement('p');
+          p.className = 'hint';
+          p.textContent =
+            'No MCP config files found. Open a project in Claude Code that has a .mcp.json, then rescan.';
+          box.appendChild(p);
+          return;
+        }
+
+        for (const item of items) {
+          const card = document.createElement('div');
+          card.className = 'conn';
+
+          const path = document.createElement('div');
+          path.className = 'path';
+          path.textContent = item.path;
+
+          const state = document.createElement('div');
+          state.className = 'state';
+          const connected = item.url === RELAY_URL;
+          state.textContent = !item.hasLovable
+            ? 'no lovable entry yet'
+            : connected
+              ? 'connected to this relay'
+              : 'currently pointing at ' + item.url;
+
+          card.append(path, state);
+
+          if (!item.writable) {
+            const warn = document.createElement('div');
+            warn.className = 'note warn';
+            warn.textContent = 'This file is read-only, so it cannot be changed from here.';
+            card.appendChild(warn);
+            box.appendChild(card);
+            continue;
+          }
+
+          const row = document.createElement('div');
+          row.className = 'row';
+
+          if (!connected) {
+            const btn = document.createElement('button');
+            btn.className = 'primary';
+            btn.textContent = 'Connect…';
+            btn.addEventListener('click', () => showPreview(card, row, item.path));
+            row.appendChild(btn);
+          }
+          if (item.originalUrl !== null || connected) {
+            const rev = document.createElement('button');
+            rev.textContent = 'Revert';
+            rev.addEventListener('click', async () => {
+              rev.disabled = true;
+              try {
+                const res = await api('/api/connections/revert', { path: item.path });
+                note(
+                  $('conn-note'),
+                  'ok',
+                  'Put back ' + (res.restored || 'the original setting') + '. Restart Claude Code.'
+                );
+                await loadConnections();
+              } catch (err) {
+                note($('conn-note'), 'bad', err.message);
+              } finally {
+                rev.disabled = false;
+              }
+            });
+            row.appendChild(rev);
+          }
+
+          card.appendChild(row);
+          box.appendChild(card);
+        }
+      }
+
+      async function showPreview(card, row, filePath) {
+        try {
+          const p = await api('/api/connections/preview', { path: filePath });
+          const old = card.querySelector('.diff');
+          if (old) old.remove();
+
+          const diff = document.createElement('div');
+          diff.className = 'diff';
+          const minus = document.createElement('div');
+          minus.className = 'minus';
+          minus.textContent = p.willAddEntry
+            ? '- (no lovable entry)'
+            : '- "url": "' + p.before + '"';
+          const plus = document.createElement('div');
+          plus.className = 'plus';
+          plus.textContent = '+ "url": "' + p.after + '"';
+          diff.append(minus, plus);
+
+          const confirm = document.createElement('div');
+          confirm.className = 'row';
+          const apply = document.createElement('button');
+          apply.className = 'primary';
+          apply.textContent = 'Apply';
+          apply.addEventListener('click', async () => {
+            apply.disabled = true;
+            try {
+              await api('/api/connections/apply', { path: filePath });
+              note($('conn-note'), 'ok', 'Connected. Restart Claude Code for it to take effect.');
+              await loadConnections();
+            } catch (err) {
+              note($('conn-note'), 'bad', err.message);
+            }
+          });
+          const cancel = document.createElement('button');
+          cancel.textContent = 'Cancel';
+          cancel.addEventListener('click', () => {
+            diff.remove();
+            confirm.remove();
+          });
+          confirm.append(apply, cancel);
+
+          card.append(diff, confirm);
+        } catch (err) {
+          note($('conn-note'), 'bad', err.message);
+        }
+      }
+
+      async function loadConnections() {
+        try {
+          renderConnections(await api('/api/connections'));
+        } catch (err) {
+          note($('conn-note'), 'bad', err.message);
+        }
+      }
+
+      $('refresh-conns').addEventListener('click', loadConnections);
+
+      loadStatus();
+      loadConnections();
+      setInterval(loadStatus, 30000);
+    </script>
+  </body>
+</html>

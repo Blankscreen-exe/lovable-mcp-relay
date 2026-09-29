@@ -1,0 +1,12 @@
+# Holds a live Lovable access + refresh token. Never commit.
+.token-cache.json
+
+# A token chain prepared for another machine. Never commit.
+laptop-chain.json
+*-chain.json
+
+# Records which MCP config files this relay has edited, so Revert is exact.
+.connections.json
+
+node_modules/
+*.log
